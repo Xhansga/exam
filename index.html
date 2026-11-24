@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UjianKu – Ujian Pilihan Ganda Online</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== MODE GURU ===================== -->
+<div id="teacher" hidden>
+  <header class="top">
+    <div class="brand">UjianKu</div>
+    <nav class="tabs" role="tablist">
+      <button data-tab="build" class="on">Buat ujian</button>
+      <button data-tab="results">Hasil siswa</button>
+      <button data-tab="help">Panduan</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- TAB: BUAT UJIAN -->
+    <section id="tab-build" class="tab">
+      <div class="card">
+        <h2>Pengaturan ujian</h2>
+        <div class="grid2">
+          <label class="f">Judul ujian
+            <input type="text" data-s="title" placeholder="mis. Penilaian Tengah Semester Biologi">
+          </label>
+          <label class="f">Mata pelajaran / kelas
+            <input type="text" data-s="subject" placeholder="mis. Biologi – XI IPA 2">
+          </label>
+          <label class="f">Durasi (menit)
+            <input type="number" min="1" max="600" data-s="duration">
+          </label>
+          <label class="f">Batas pelanggaran
+            <input type="number" min="0" max="50" data-s="maxViol">
+            <small>Ujian otomatis diselesaikan bila terlewati. Isi 0 untuk tanpa batas.</small>
+          </label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" data-s="shuffleQ"> Acak urutan soal</label>
+          <label><input type="checkbox" data-s="shuffleO"> Acak urutan pilihan jawaban</label>
+          <label><input type="checkbox" data-s="showScore"> Tampilkan nilai ke siswa setelah selesai</label>
+        </div>
+        <label class="f">URL pengumpul hasil otomatis (opsional)
+          <input type="url" data-s="webhook" placeholder="https://script.google.com/macros/s/…/exec">
+          <small>Lihat tab Panduan untuk cara memasang Google Apps Script. Kosongkan bila hasil dikumpulkan lewat kode.</small>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <h2>Soal <span id="qcount" class="muted"></span></h2>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="btnImport">Impor dari teks</button>
+          <button class="btn" id="btnAddTop">Tambah soal</button>
+        </div>
+        <div id="questions"></div>
+        <button class="btn ghost block" id="btnAddBottom">Tambah soal</button>
+      </div>
+
+      <div class="card">
+        <h2>Bagikan ke siswa</h2>
+        <p class="muted">Link berisi seluruh soal, jadi tidak perlu server. Buat ulang link setiap kali soal diubah.</p>
+        <div class="row">
+          <button class="btn primary" id="btnLink">Buat link ujian</button>
+          <button class="btn ghost danger" id="btnReset">Kosongkan semua</button>
+        </div>
+        <div id="linkBox" hidden>
+          <label class="f">Link untuk siswa
+            <input type="text" id="linkOut" readonly>
+          </label>
+          <div class="row">
+            <button class="btn" id="btnCopy">Salin link</button>
+            <a class="btn ghost" id="btnPreview" target="_blank" rel="noopener">Coba sebagai siswa</a>
+          </div>
+          <p class="muted" id="linkInfo"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: HASIL -->
+    <section id="tab-results" class="tab" hidden>
+      <div class="card">
+        <h2>Rekap hasil siswa</h2>
+        <p class="muted">Tempel kode hasil dari siswa, satu kode per baris. Baris dari Google Sheets (tanggal + kode) juga bisa langsung ditempel.</p>
+        <textarea id="codes" rows="6" placeholder="Tempel kode hasil di sini…"></textarea>
+        <div class="row">
+          <button class="btn primary" id="btnDecode">Tampilkan rekap</button>
+          <button class="btn ghost" id="btnCsv" disabled>Unduh CSV</button>
+        </div>
+        <div class="scroll"><table id="resTable" hidden>
+          <thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Keterangan</th><th>Selesai</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="muted" id="resInfo"></p>
+      </div>
+    </section>
+
+    <!-- TAB: PANDUAN -->
+    <section id="tab-help" class="tab" hidden>
+      <div class="card prose">
+        <h2>Panduan singkat</h2>
+        <ol>
+          <li>Isi pengaturan, lalu tambahkan soal satu per satu atau lewat <b>Impor dari teks</b>.</li>
+          <li>Pilih jawaban benar dengan menandai bulatan di samping pilihan.</li>
+          <li>Klik <b>Buat link ujian</b> dan bagikan link ke siswa (WhatsApp, LMS, dsb.).</li>
+          <li>Siswa mengisi nama, menekan <b>Mulai ujian</b>, dan layar otomatis penuh.</li>
+          <li>Setelah siswa menekan <b>Selesai ujian</b>, mereka mendapat kode hasil. Kumpulkan kode itu di tab <b>Hasil siswa</b>.</li>
+        </ol>
+        <h3>Format impor teks</h3>
+<pre>1. Ibu kota Indonesia adalah …
+A. Bandung
+B. Jakarta
+C. Medan
+D. Surabaya
+Jawaban: B
+
+2. Hasil dari 2 + 3 adalah …
+A. 4
+B. 5
+C. 6
+Jawaban: B</pre>
+        <p>Pisahkan antar soal dengan satu baris kosong.</p>
+        <h3>Batasan yang perlu diketahui</h3>
+        <p>Browser tidak mengizinkan halaman web mengunci tab lain secara mutlak. UjianKu mendeteksi keluar dari layar penuh, pindah tab/jendela, dan pintasan terlarang. Setiap kejadian dicatat sebagai pelanggaran dan ujian diselesaikan otomatis bila melewati batas. Untuk pengawasan ketat, kombinasikan dengan pengawas di ruangan atau Safe Exam Browser.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="importDlg">
+    <form method="dialog" class="dlg">
+      <h3>Impor soal dari teks</h3>
+      <p class="muted">Tempel soal dengan format pada tab Panduan. Soal akan ditambahkan setelah soal yang sudah ada.</p>
+      <textarea id="importText" rows="12" placeholder="1. Pertanyaan…&#10;A. Pilihan&#10;B. Pilihan&#10;Jawaban: A"></textarea>
+      <div class="row end">
+        <button class="btn ghost" value="cancel">Batal</button>
+        <button class="btn primary" id="btnDoImport" value="ok">Impor</button>
+      </div>
+    </form>
+  </dialog>
+</div>
+
+<!-- ===================== MODE SISWA ===================== -->
+<div id="student" hidden>
+
+  <!-- Intro -->
+  <section id="s-intro" class="center" hidden>
+    <div class="card intro">
+      <h1 id="iTitle"></h1>
+      <p class="muted" id="iSubject"></p>
+      <dl class="facts" id="iFacts"></dl>
+      <div id="iForm">
+        <label class="f">Nama lengkap
+          <input type="text" id="iName" autocomplete="off" maxlength="60">
+        </label>
+        <label class="f">Kelas / NIS
+          <input type="text" id="iKelas" autocomplete="off" maxlength="30">
+        </label>
+      </div>
+      <ul class="rules">
+        <li>Layar akan otomatis penuh. Jangan keluar dari layar penuh sampai ujian selesai.</li>
+        <li>Berpindah tab, membuka jendela lain, atau memuat ulang halaman dihitung sebagai pelanggaran.</li>
+        <li id="iRuleMax"></li>
+        <li>Ujian berakhir saat Anda menekan <b>Selesai ujian</b> atau waktu habis.</li>
+      </ul>
+      <label class="agree"><input type="checkbox" id="iAgree"> Saya sudah membaca dan setuju dengan aturan ujian.</label>
+      <p class="err" id="iErr" hidden></p>
+      <button class="btn primary big" id="btnStart" disabled>Mulai ujian</button>
+    </div>
+  </section>
+
+  <!-- Ujian -->
+  <section id="s-exam" class="exam" hidden>
+    <header class="ebar">
+      <div class="et">
+        <strong id="eTitle"></strong>
+        <span class="muted" id="eWho"></span>
+      </div>
+      <div class="spacer"></div>
+      <div class="chip" id="eViol" title="Pelanggaran"></div>
+      <div class="chip timer" id="eTimer">--:--</div>
+      <button class="btn danger-solid" id="btnFinish">Selesai ujian</button>
+    </header>
+    <div class="ebody">
+      <article class="qpane">
+        <div class="qmeta"><span id="qno"></span><span class="flagtag" id="qflagtag" hidden>Ragu-ragu</span></div>
+        <div class="qtext" id="qtext"></div>
+        <div class="choices" id="qopts"></div>
+        <div class="qnav">
+          <button class="btn ghost" id="btnPrev">Sebelumnya</button>
+          <button class="btn ghost" id="btnFlag">Tandai ragu-ragu</button>
+          <button class="btn" id="btnNext">Selanjutnya</button>
+        </div>
+      </article>
+      <aside class="side">
+        <h3>Nomor soal</h3>
+        <div class="grid-nav" id="navGrid"></div>
+        <ul class="legend">
+          <li><i class="nb answered"></i> Terjawab</li>
+          <li><i class="nb flagged"></i> Ragu-ragu</li>
+          <li><i class="nb"></i> Belum dijawab</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Selesai -->
+  <section id="s-done" class="center" hidden>
+    <div class="card intro">
+      <h1>Ujian selesai</h1>
+      <p class="muted" id="dWho"></p>
+      <div id="dScore" class="score" hidden></div>
+      <p id="dReason" class="warn" hidden></p>
+      <p id="dSent" class="muted" hidden></p>
+      <label class="f">Kode hasil Anda
+        <textarea id="dCode" rows="4" readonly></textarea>
+        <small>Salin kode ini dan kirim ke guru bila diminta. Anda boleh menutup halaman ini.</small>
+      </label>
+      <button class="btn" id="btnCopyCode">Salin kode hasil</button>
+    </div>
+  </section>
+
+  <section id="s-error" class="center" hidden>
+    <div class="card intro">
+      <h1>Link ujian tidak valid</h1>
+      <p class="muted" id="errMsg">Minta guru Anda mengirim ulang link ujian.</p>
+    </div>
+  </section>
+
+  <!-- Overlay: kembali ke layar penuh -->
+  <div id="lock" class="overlay" hidden>
+    <div class="modal">
+      <h2>Ujian dijeda</h2>
+      <p id="lockReason"></p>
+      <p id="lockLeft" class="warn"></p>
+      <button class="btn primary big" id="btnResume">Kembali ke ujian</button>
+    </div>
+  </div>
+
+  <!-- Overlay: konfirmasi selesai -->
+  <div id="confirm" class="overlay" hidden>
+    <div class="modal">
+      <h2>Selesaikan ujian?</h2>
+      <p id="confirmText"></p>
+      <div class="row end">
+        <button class="btn ghost" id="btnCancelFinish">Kembali mengerjakan</button>
+        <button class="btn danger-solid" id="btnOkFinish">Ya, selesaikan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
