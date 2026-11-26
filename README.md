@@ -23,6 +23,16 @@ Aplikasi web ujian pilihan ganda tanpa server. Guru membuat soal dan mendapat li
 
 Buka alamat itu sebagai guru, buat ujian, klik **Buat link ujian**, lalu bagikan link ke siswa.
 
+## Link pendek lewat file di GitHub
+
+Link biasa (`#u=…`) panjang karena membawa seluruh soal. Untuk link pendek:
+
+1. Buat ujian, klik **Buat link ujian**, lalu **Unduh file ujian** (`<id>.json`).
+2. Di repositori, buat folder `exams` lalu unggah file itu (**Add file → Upload files**) dan **Commit**.
+3. Setelah GitHub Pages selesai memperbarui (±1 menit), bagikan link pendek `https://<username>.github.io/<nama-repo>/?e=<id>`.
+
+Catatan: kunci jawaban tetap ada di file JSON yang bisa dibuka siapa pun, jadi tingkat keamanannya sama dengan link biasa.
+
 ## Mengumpulkan hasil
 
 **Cara 1: manual.** Setelah selesai, siswa mendapat kode hasil. Mereka mengirimnya ke guru, dan guru menempelkannya di tab **Hasil siswa**.

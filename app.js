@@ -55,7 +55,9 @@ async function decode(str) {
    ========================================================= */
 window.addEventListener('DOMContentLoaded', () => {
   const m = location.hash.match(/^#([up])=(.+)$/);
+  const e = new URLSearchParams(location.search).get('e');
   if (m) initStudent(m[2], m[1] === 'p');
+  else if (e) initStudentFromFile(e);
   else initTeacher();
 });
 
@@ -160,6 +162,9 @@ function initTeacher() {
   $('#btnLink').onclick = buildLink;
   $('#btnCopy').onclick = () => copyText($('#linkOut').value);
   $('#linkOut').addEventListener('focus', e => e.target.select());
+  $('#shortOut').addEventListener('focus', e => e.target.select());
+  $('#btnDl').onclick = downloadExamFile;
+  $('#btnCopyShort').onclick = () => copyText($('#shortOut').value);
 
   // Hasil
   $('#btnDecode').onclick = decodeResults;
@@ -227,6 +232,14 @@ function validate() {
   return errs;
 }
 
+let examFile = null;
+function downloadExamFile() {
+  if (!examFile) return;
+  const blob = new Blob([examFile.json], { type: 'application/json' });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: examFile.name });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 async function buildLink() {
   const errs = validate();
   if (errs.length) {
@@ -250,6 +263,9 @@ async function buildLink() {
   const len = $('#linkOut').value.length;
   $('#linkInfo').textContent = `Panjang link: ${len.toLocaleString('id-ID')} karakter.` +
     (len > 6000 ? ' Link cukup panjang; sebagian aplikasi chat bisa memotongnya. Bagikan lewat LMS/email, atau pecah menjadi beberapa ujian.' : '');
+  examFile = { name: `${exam.id}.json`, json: JSON.stringify(exam) };
+  $('#shortOut').value = `${base}?e=${exam.id}`;
+  $('#shortName').textContent = `Nama file: ${examFile.name} (simpan di folder exams/)`;
   show($('#linkBox'));
   $('#linkBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -300,11 +316,24 @@ function shuffle(a) {
 function saveState() { if (!PREVIEW) try { localStorage.setItem(stKey(), JSON.stringify(ST)); } catch {} }
 function screen(id) { ['s-intro', 's-exam', 's-done', 's-error'].forEach(s => show($('#' + s), s === id)); }
 
-async function initStudent(code, preview) {
+async function initStudentFromFile(id) {
+  show($('#student'));
+  try {
+    if (!/^[a-z0-9]{4,20}$/i.test(id)) throw 0;
+    const r = await fetch(`exams/${id}.json`, { cache: 'no-store' });
+    if (!r.ok) throw 0;
+    return initStudent(null, false, await r.json());
+  } catch {
+    $('#errMsg').textContent = 'File ujian tidak ditemukan. Pastikan file sudah diunggah ke folder exams dan GitHub Pages sudah selesai memperbarui (±1 menit), lalu muat ulang.';
+    screen('s-error');
+  }
+}
+
+async function initStudent(code, preview, exam) {
   PREVIEW = preview;
   show($('#student'));
   try {
-    EXAM = await decode(code);
+    EXAM = exam || await decode(code);
     if (!EXAM.questions?.length) throw 0;
   } catch {
     screen('s-error'); return;

@@ -147,3 +147,7 @@ i.nb{width:18px;height:18px;height:18px;border-width:2px;vertical-align:-3px;mar
 }
 @media print{#student,#toast{display:none!important}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.shortbox{margin-top:1rem;padding-top:.8rem;border-top:1px dashed var(--line)}
+.shortbox ol{padding-left:1.2rem;margin:.3rem 0 .6rem}
+code{background:var(--bg);padding:.05rem .35rem;border-radius:5px}

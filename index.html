@@ -81,6 +81,23 @@
             <a class="btn ghost" id="btnPreview" target="_blank" rel="noopener">Coba sebagai siswa</a>
           </div>
           <p class="muted" id="linkInfo"></p>
+
+          <div class="shortbox">
+            <h3>Link pendek (via file di GitHub)</h3>
+            <ol class="muted">
+              <li>Klik <b>Unduh file ujian</b>.</li>
+              <li>Unggah file itu ke folder <code>exams</code> di repositori GitHub Anda, lalu <b>Commit</b>.</li>
+              <li>Tunggu ±1 menit sampai GitHub Pages memperbarui, lalu bagikan link pendek di bawah.</li>
+            </ol>
+            <label class="f">Link pendek untuk siswa
+              <input type="text" id="shortOut" readonly>
+            </label>
+            <div class="row">
+              <button class="btn" id="btnDl">Unduh file ujian</button>
+              <button class="btn ghost" id="btnCopyShort">Salin link pendek</button>
+            </div>
+            <p class="muted" id="shortName"></p>
+          </div>
         </div>
       </div>
     </section>
